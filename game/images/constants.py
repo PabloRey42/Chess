@@ -7,4 +7,4 @@ Rows, Cols = 8,8
 Square = Width//Rows
 
 
-Path =""
+Path ="game/images"
