@@ -23,8 +23,7 @@ pygame.display.set_caption("Jeu d'Échecs")
 pieces = {}
 for piece in ["pawn", "rook", "knight", "bishop", "queen", "king"]:
     for color in ["white", "black"]:
-        swapped_color = "black" if color == "white" else "white"
-        image = pygame.image.load(f"{swapped_color}_{piece}.png")
+        image = pygame.image.load(f"images/{color}_{piece}.png")
         pieces[f"{color}_{piece}"] = pygame.transform.scale(image, (CELL_SIZE, CELL_SIZE))
 
 def draw_board():
@@ -38,7 +37,6 @@ def draw_board():
             )
 
 def draw_pieces():
-    #AAAAAAAAAAAAAAAAAAAAAAAA je vais me tabasser !
     piece_types = {
         chess.PAWN: "pawn",
         chess.ROOK: "rook",
@@ -56,8 +54,9 @@ def draw_pieces():
 
             row, col = divmod(square, 8)
 
+            # Inverser les lignes pour mettre les Blancs en bas
             x = BOARD_X + col * CELL_SIZE
-            y = BOARD_Y + row * CELL_SIZE
+            y = BOARD_Y + (7 - row) * CELL_SIZE  # Inverser l'axe des y
             screen.blit(image, (x, y))
 
 def highlight_moves(square):
@@ -68,7 +67,7 @@ def highlight_moves(square):
             row, col = divmod(to_square, 8)
 
             x = BOARD_X + col * CELL_SIZE + CELL_SIZE // 2
-            y = BOARD_Y + row * CELL_SIZE + CELL_SIZE // 2
+            y = BOARD_Y + (7 - row) * CELL_SIZE + CELL_SIZE // 2
             pygame.draw.circle(screen, HIGHLIGHT_COLOR, (x, y), 10)
 
 def draw_buttons():
@@ -84,19 +83,36 @@ def draw_buttons():
 
 def convert_click_to_square(x, y):
     col = (x - BOARD_X) // CELL_SIZE
-    row = (y - BOARD_Y) // CELL_SIZE
-
+    row = 7 - (y - BOARD_Y) // CELL_SIZE  # Inverser l'axe des y
     return chess.square(col, row)
+
+def animate_victory(winner):
+    """Animation indiquant le vainqueur."""
+    font = pygame.font.Font(None, 72)
+    text = f"{'Les Blancs' if winner == chess.WHITE else 'Les Noirs'} gagnent !"
+    text_surface = font.render(text, True, WHITE)
+    text_rect = text_surface.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+
+    alpha_surface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
+    alpha = 0
+
+    while alpha < 150:
+        alpha_surface.fill((0, 0, 0, alpha))
+        screen.blit(alpha_surface, (0, 0))
+        screen.blit(text_surface, text_rect)
+        pygame.display.flip()
+        pygame.time.delay(30)
+        alpha += 5
 
 def main():
     selected_square = None
-    runningjeparlepasdelacourseapiedsmaisjustesilaboucletourneencoreoupas = True
+    running = True
 
-    print(board)  
-    while runningjeparlepasdelacourseapiedsmaisjustesilaboucletourneencoreoupas:
+    print(board)
+    while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                runningjeparlepasdelacourseapiedsmaisjustesilaboucletourneencoreoupas = False
+                running = False
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
@@ -105,7 +121,7 @@ def main():
                     board.reset()
                     selected_square = None
                 elif 850 <= x <= 950 and 200 <= y <= 250:  
-                    runningjeparlepasdelacourseapiedsmaisjustesilaboucletourneencoreoupas(jeparlepasdelacourseapiedsmaisjustesilaboucletourneencofreoupas) = False
+                    running = False
                 elif BOARD_X <= x <= BOARD_X + BOARD_SIZE and BOARD_Y <= y <= BOARD_Y + BOARD_SIZE:
                     square = convert_click_to_square(x, y)
                     if selected_square:
@@ -124,6 +140,13 @@ def main():
         if selected_square:
             highlight_moves(selected_square)
         draw_buttons()
+
+        # Vérifiez si c'est un échec et mat
+        if board.is_checkmate():
+            winner = not board.turn  # Si c'est au tour des Blancs et c'est mat, les Noirs gagnent
+            animate_victory(winner)
+            board.reset()
+            selected_square = None
 
         pygame.display.flip()
 
