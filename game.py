@@ -54,9 +54,8 @@ def draw_pieces():
 
             row, col = divmod(square, 8)
 
-            # Inverser les lignes pour mettre les Blancs en bas
             x = BOARD_X + col * CELL_SIZE
-            y = BOARD_Y + (7 - row) * CELL_SIZE  # Inverser l'axe des y
+            y = BOARD_Y + (7 - row) * CELL_SIZE  
             screen.blit(image, (x, y))
 
 def highlight_moves(square):
@@ -141,9 +140,8 @@ def main():
             highlight_moves(selected_square)
         draw_buttons()
 
-        # Vérifiez si c'est un échec et mat
         if board.is_checkmate():
-            winner = not board.turn  # Si c'est au tour des Blancs et c'est mat, les Noirs gagnent
+            winner = not board.turn
             animate_victory(winner)
             board.reset()
             selected_square = None
