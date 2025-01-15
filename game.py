@@ -86,7 +86,6 @@ def convert_click_to_square(x, y):
     return chess.square(col, row)
 
 def animate_victory(winner):
-    """Animation indiquant le vainqueur."""
     font = pygame.font.Font(None, 72)
     text = f"{'Les Blancs' if winner == chess.WHITE else 'Les Noirs'} gagnent !"
     text_surface = font.render(text, True, WHITE)
