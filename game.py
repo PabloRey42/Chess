@@ -114,6 +114,26 @@ def animate_victory(winner):
         pygame.time.delay(30)
         alpha += 5
 
+
+def highlight_on_check():
+    if board.is_check():
+        king_square = board.king(board.turn)
+
+        row, col = divmod(king_square, 8)
+        x = BOARD_X + col * CELL_SIZE
+        y = BOARD_Y + (7 - row) * CELL_SIZE
+
+        # Change background to red
+        highlight_color = (255, 0, 0, 128)
+        highlight_surface = pygame.Surface((CELL_SIZE, CELL_SIZE), pygame.SRCALPHA)
+        highlight_surface.fill(highlight_color)
+        screen.blit(highlight_surface, (x, y))
+
+        # Add red border color
+        # highlight_color = (255, 0, 0)  # Bright red
+        # rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
+        # pygame.draw.rect(screen, highlight_color, rect, 4)  # 4-pixel border
+
 def main():
     selected_square = None
     running = True
@@ -147,6 +167,7 @@ def main():
 
         screen.fill((50, 50, 50))
         draw_board()
+        highlight_on_check()
         draw_pieces()
         draw_turn()
         if selected_square:
