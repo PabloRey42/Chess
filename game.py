@@ -80,11 +80,17 @@ def draw_buttons():
     pygame.draw.rect(screen, (200, 200, 200), (850, 200, 100, 50))
     screen.blit(quit_button, (865, 210))
 
-def drew_turn():
+
+def draw_turn():
     font = pygame.font.Font(None, 36)
-    turn_txt = "White" if board.turn else "Black"
+    turn_txt = "Turn: White" if board.turn else "Turn: Black"
     turn_render = font.render(turn_txt, True, WHITE)
-    screen.blit(turn_render, (BOARD_X, BOARD_Y))
+
+    text_width = turn_render.get_width()
+    text_x = (WINDOW_WIDTH - text_width) // 2 # Center le text
+    text_y = 20
+    screen.blit(turn_render, (text_x, text_y))
+
 
 def convert_click_to_square(x, y):
     col = (x - BOARD_X) // CELL_SIZE
@@ -142,6 +148,7 @@ def main():
         screen.fill((50, 50, 50))
         draw_board()
         draw_pieces()
+        draw_turn()
         if selected_square:
             highlight_moves(selected_square)
         draw_buttons()
