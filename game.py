@@ -1,98 +1,134 @@
 import pygame
+import chess
 import sys
 
-# Initialize pygame
 pygame.init()
 
-# Screen dimensions
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+WINDOW_WIDTH, WINDOW_HEIGHT = 1000, 800
+BOARD_SIZE = 600  
+CELL_SIZE = BOARD_SIZE // 8
 
-# Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-GRAY = (200, 200, 200)
-HIGHLIGHT = (100, 100, 255)
+HIGHLIGHT_COLOR = (0, 255, 0)
 
-# Fonts
-FONT = pygame.font.Font(None, 74)
-SMALL_FONT = pygame.font.Font(None, 36)
+BOARD_X = (WINDOW_WIDTH - BOARD_SIZE) // 2
+BOARD_Y = (WINDOW_HEIGHT - BOARD_SIZE) // 2
 
-# Initialize screen
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Chess Game")
+board = chess.Board()
 
-def draw_text(text, font, color, surface, x, y):
-    """Helper function to draw text on the screen."""
-    text_obj = font.render(text, True, color)
-    text_rect = text_obj.get_rect(center=(x, y))
-    surface.blit(text_obj, text_rect)
+screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+pygame.display.set_caption("Jeu d'Échecs")
 
-def main_menu():
-    """Displays the main menu."""
-    while True:
-        screen.fill(WHITE)
+pieces = {}
+for piece in ["pawn", "rook", "knight", "bishop", "queen", "king"]:
+    for color in ["white", "black"]:
+        swapped_color = "black" if color == "white" else "white"
+        image = pygame.image.load(f"{swapped_color}_{piece}.png")
+        pieces[f"{color}_{piece}"] = pygame.transform.scale(image, (CELL_SIZE, CELL_SIZE))
 
-        # Title
-        draw_text("Chess Game", FONT, BLACK, screen, SCREEN_WIDTH // 2, 100)
+def draw_board():
+    for row in range(8):
+        for col in range(8):
+            color = WHITE if (row + col) % 2 == 0 else BLACK
+            pygame.draw.rect(
+                screen,
+                color,
+                (BOARD_X + col * CELL_SIZE, BOARD_Y + row * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+            )
 
-        # Menu options
-        mx, my = pygame.mouse.get_pos()
+def draw_pieces():
+    #AAAAAAAAAAAAAAAAAAAAAAAA je vais me tabasser !
+    piece_types = {
+        chess.PAWN: "pawn",
+        chess.ROOK: "rook",
+        chess.KNIGHT: "knight",
+        chess.BISHOP: "bishop",
+        chess.QUEEN: "queen",
+        chess.KING: "king"
+    }
+    for square in chess.SQUARES:
+        piece = board.piece_at(square)
+        if piece:
+            piece_name = piece_types[piece.piece_type]
+            color = "white" if piece.color == chess.WHITE else "black"
+            image = pieces[f"{color}_{piece_name}"]
 
-        button_new_game = pygame.Rect(SCREEN_WIDTH // 2 - 150, 200, 300, 50)
-        button_instructions = pygame.Rect(SCREEN_WIDTH // 2 - 150, 300, 300, 50)
-        button_quit = pygame.Rect(SCREEN_WIDTH // 2 - 150, 400, 300, 50)
+            row, col = divmod(square, 8)
 
-        pygame.draw.rect(screen, HIGHLIGHT if button_new_game.collidepoint((mx, my)) else GRAY, button_new_game)
-        pygame.draw.rect(screen, HIGHLIGHT if button_instructions.collidepoint((mx, my)) else GRAY, button_instructions)
-        pygame.draw.rect(screen, HIGHLIGHT if button_quit.collidepoint((mx, my)) else GRAY, button_quit)
+            x = BOARD_X + col * CELL_SIZE
+            y = BOARD_Y + row * CELL_SIZE
+            screen.blit(image, (x, y))
 
-        draw_text("New Game", SMALL_FONT, BLACK, screen, SCREEN_WIDTH // 2, 225)
-        draw_text("Instructions", SMALL_FONT, BLACK, screen, SCREEN_WIDTH // 2, 325)
-        draw_text("Quit", SMALL_FONT, BLACK, screen, SCREEN_WIDTH // 2, 425)
+def highlight_moves(square):
+    moves = list(board.legal_moves)
+    for move in moves:
+        if move.from_square == square:
+            to_square = move.to_square
+            row, col = divmod(to_square, 8)
 
-        # Event handling
+            x = BOARD_X + col * CELL_SIZE + CELL_SIZE // 2
+            y = BOARD_Y + row * CELL_SIZE + CELL_SIZE // 2
+            pygame.draw.circle(screen, HIGHLIGHT_COLOR, (x, y), 10)
+
+def draw_buttons():
+    font = pygame.font.Font(None, 36)
+    reset_button = font.render("Reset", True, (0, 0, 0))
+    quit_button = font.render("Quit", True, (0, 0, 0))
+
+    pygame.draw.rect(screen, (200, 200, 200), (50, 200, 100, 50))
+    screen.blit(reset_button, (65, 210))
+
+    pygame.draw.rect(screen, (200, 200, 200), (850, 200, 100, 50))
+    screen.blit(quit_button, (865, 210))
+
+def convert_click_to_square(x, y):
+    col = (x - BOARD_X) // CELL_SIZE
+    row = (y - BOARD_Y) // CELL_SIZE
+
+    return chess.square(col, row)
+
+def main():
+    selected_square = None
+    runningjeparlepasdelacourseapiedsmaisjustesilaboucletourneencoreoupas = True
+
+    print(board)  
+    while runningjeparlepasdelacourseapiedsmaisjustesilaboucletourneencoreoupas:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                runningjeparlepasdelacourseapiedsmaisjustesilaboucletourneencoreoupas = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if button_new_game.collidepoint((mx, my)):
-                    # Start new game
-                    print("New Game Selected")
-                    return "new_game"
-                if button_instructions.collidepoint((mx, my)):
-                    # Show instructions
-                    print("Instructions Selected")
-                    instructions_menu()
-                if button_quit.collidepoint((mx, my)):
-                    # Quit the game
-                    pygame.quit()
-                    sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = pygame.mouse.get_pos()
+
+                if 50 <= x <= 150 and 200 <= y <= 250:  
+                    board.reset()
+                    selected_square = None
+                elif 850 <= x <= 950 and 200 <= y <= 250:  
+                    runningjeparlepasdelacourseapiedsmaisjustesilaboucletourneencoreoupas(jeparlepasdelacourseapiedsmaisjustesilaboucletourneencofreoupas) = False
+                elif BOARD_X <= x <= BOARD_X + BOARD_SIZE and BOARD_Y <= y <= BOARD_Y + BOARD_SIZE:
+                    square = convert_click_to_square(x, y)
+                    if selected_square:
+                        move = chess.Move(selected_square, square)
+                        if move in board.legal_moves:
+                            board.push(move)
+                        selected_square = None
+                    else:
+                        piece = board.piece_at(square)
+                        if piece and piece.color == (board.turn == chess.WHITE):
+                            selected_square = square
+
+        screen.fill((50, 50, 50))
+        draw_board()
+        draw_pieces()
+        if selected_square:
+            highlight_moves(selected_square)
+        draw_buttons()
 
         pygame.display.flip()
 
-def instructions_menu():
-    """Displays the instructions menu."""
-    while True:
-        screen.fill(WHITE)
+    pygame.quit()
+    sys.exit()
 
-        draw_text("Instructions", FONT, BLACK, screen, SCREEN_WIDTH // 2, 100)
-        draw_text("- Use the mouse to select pieces.", SMALL_FONT, BLACK, screen, SCREEN_WIDTH // 2, 200)
-        draw_text("- Follow standard chess rules.", SMALL_FONT, BLACK, screen, SCREEN_WIDTH // 2, 250)
-        draw_text("Press any key to return.", SMALL_FONT, BLACK, screen, SCREEN_WIDTH // 2, 350)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-            if event.type == pygame.KEYDOWN:
-                return
-
-        pygame.display.flip()
-
-# Main loop
 if __name__ == "__main__":
-    main_menu()
+    main()
