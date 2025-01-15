@@ -24,7 +24,7 @@ pieces = {}
 for piece in ["pawn", "rook", "knight", "bishop", "queen", "king"]:
     for color in ["white", "black"]:
         image = pygame.image.load(f"images/{color}_{piece}.png")
-        pieces[f"{color}_{piece}"] = pygame.transform.scale(image, (CELL_SIZE, CELL_SIZE))
+        pieces[f"{color}_{piece}"] = pygame.transform.scale(image, (CELL_SIZE, CELL_SIZE*2))
 
 def draw_board():
     for row in range(8):
@@ -45,7 +45,7 @@ def draw_pieces():
         chess.QUEEN: "queen",
         chess.KING: "king"
     }
-    for square in chess.SQUARES:
+    for square in reversed(chess.SQUARES):
         piece = board.piece_at(square)
         if piece:
             piece_name = piece_types[piece.piece_type]
@@ -55,7 +55,7 @@ def draw_pieces():
             row, col = divmod(square, 8)
 
             x = BOARD_X + col * CELL_SIZE
-            y = BOARD_Y + (7 - row) * CELL_SIZE  
+            y = BOARD_Y + (7 - row) * CELL_SIZE - CELL_SIZE
             screen.blit(image, (x, y))
 
 def highlight_moves(square):
@@ -79,6 +79,12 @@ def draw_buttons():
 
     pygame.draw.rect(screen, (200, 200, 200), (850, 200, 100, 50))
     screen.blit(quit_button, (865, 210))
+
+def drew_turn():
+    font = pygame.font.Font(None, 36)
+    turn_txt = "White" if board.turn else "Black"
+    turn_render = font.render(turn_txt, True, WHITE)
+    screen.blit(turn_render, (BOARD_X, BOARD_Y))
 
 def convert_click_to_square(x, y):
     col = (x - BOARD_X) // CELL_SIZE
@@ -131,6 +137,7 @@ def main():
                         piece = board.piece_at(square)
                         if piece and piece.color == (board.turn == chess.WHITE):
                             selected_square = square
+
 
         screen.fill((50, 50, 50))
         draw_board()
