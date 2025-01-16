@@ -160,6 +160,7 @@ def main():
                 elif 50 <= x <= 150 and 300 <= y <= 350:
                     if len(board.move_stack) > 0:
                         board.pop()
+                        selected_square = None
                 elif BOARD_X <= x <= BOARD_X + BOARD_SIZE and BOARD_Y <= y <= BOARD_Y + BOARD_SIZE:
                     square = convert_click_to_square(x, y)
                     if selected_square:
