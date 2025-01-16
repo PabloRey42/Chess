@@ -1,5 +1,5 @@
-import pygame
-import chess
+import pygame 
+import chess 
 import sys
 
 pygame.init()
@@ -160,6 +160,9 @@ def main():
                         move = chess.Move(selected_square, square)
                         if move in board.legal_moves:
                             board.push(move)
+                            pygame.mixer.init()
+                            pygame.mixer.music.load('./sounds/sound.mp3')
+                            pygame.mixer.music.play()
                         selected_square = None
                     else:
                         piece = board.piece_at(square)
