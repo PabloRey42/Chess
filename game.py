@@ -147,6 +147,11 @@ def highlight_square_on_check():
             rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
             pygame.draw.rect(screen, highlight_color, rect, 4)  # 4-pixel border
 
+def is_promoting(moving_piece, square):
+    return (moving_piece.piece_type is chess.PAWN and
+            ((moving_piece.color == chess.WHITE and chess.square_rank(square) == 7)
+             or (moving_piece.color == chess.BLACK and chess.square_rank(square) == 0)))
+
 
 def main():
     selected_square = None
@@ -173,7 +178,9 @@ def main():
                 elif BOARD_X <= x <= BOARD_X + BOARD_SIZE and BOARD_Y <= y <= BOARD_Y + BOARD_SIZE:
                     square = convert_click_to_square(x, y)
                     if selected_square:
-                        move = chess.Move(selected_square, square)
+                        moving_piece = board.piece_at(selected_square)
+                        choosen_promotion = chess.QUEEN if is_promoting(moving_piece, square) else None
+                        move = chess.Move(selected_square, square, promotion=choosen_promotion)
                         if move in board.legal_moves:
                             board.push(move)
                             pygame.mixer.music.play()
@@ -199,10 +206,8 @@ def main():
             selected_square = None
 
         pygame.display.flip()
-
     pygame.quit()
     sys.exit()
-
 
 if __name__ == "__main__":
     main()
