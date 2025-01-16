@@ -73,6 +73,7 @@ def draw_buttons():
     font = pygame.font.Font(None, 36)
     reset_button = font.render("Reset", True, (0, 0, 0))
     quit_button = font.render("Quit", True, (0, 0, 0))
+    undo_button = font.render("Undo", True, (0, 0, 0))
 
     pygame.draw.rect(screen, (200, 200, 200), (50, 200, 100, 50))
     screen.blit(reset_button, (65, 210))
@@ -80,6 +81,8 @@ def draw_buttons():
     pygame.draw.rect(screen, (200, 200, 200), (850, 200, 100, 50))
     screen.blit(quit_button, (865, 210))
 
+    pygame.draw.rect(screen, (200, 200, 200), (50, 300, 100, 50))
+    screen.blit(undo_button, (65, 310))
 
 def draw_turn():
     font = pygame.font.Font(None, 36)
@@ -154,6 +157,9 @@ def main():
                     selected_square = None
                 elif 850 <= x <= 950 and 200 <= y <= 250:  
                     running = False
+                elif 50 <= x <= 50+100 and 300 <= y <= 300+50:
+                    if len(board.move_stack) > 0:
+                        board.pop()
                 elif BOARD_X <= x <= BOARD_X + BOARD_SIZE and BOARD_Y <= y <= BOARD_Y + BOARD_SIZE:
                     square = convert_click_to_square(x, y)
                     if selected_square:
