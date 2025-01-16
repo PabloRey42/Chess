@@ -3,6 +3,8 @@ import chess
 import sys
 
 pygame.init()
+pygame.mixer.init()
+pygame.mixer.music.load('./sounds/sound.mp3')
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 1000, 800
 BOARD_SIZE = 600  
@@ -160,8 +162,6 @@ def main():
                         move = chess.Move(selected_square, square)
                         if move in board.legal_moves:
                             board.push(move)
-                            pygame.mixer.init()
-                            pygame.mixer.music.load('./sounds/sound.mp3')
                             pygame.mixer.music.play()
                         selected_square = None
                     else:
