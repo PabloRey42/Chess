@@ -24,7 +24,7 @@ pieces = {}
 for piece in ["pawn", "rook", "knight", "bishop", "queen", "king"]:
     for color in ["white", "black"]:
         image = pygame.image.load(f"images/{color}_{piece}.png")
-        pieces[f"{color}_{piece}"] = pygame.transform.scale(image, (CELL_SIZE, CELL_SIZE))
+        pieces[f"{color}_{piece}"] = pygame.transform.scale(image, (CELL_SIZE, CELL_SIZE*2))
 
 def draw_board():
     for row in range(8):
@@ -45,7 +45,7 @@ def draw_pieces():
         chess.QUEEN: "queen",
         chess.KING: "king"
     }
-    for square in chess.SQUARES:
+    for square in reversed(chess.SQUARES):
         piece = board.piece_at(square)
         if piece:
             piece_name = piece_types[piece.piece_type]
@@ -55,7 +55,7 @@ def draw_pieces():
             row, col = divmod(square, 8)
 
             x = BOARD_X + col * CELL_SIZE
-            y = BOARD_Y + (7 - row) * CELL_SIZE  
+            y = BOARD_Y + (7 - row) * CELL_SIZE - CELL_SIZE
             screen.blit(image, (x, y))
 
 def highlight_moves(square):
@@ -80,6 +80,18 @@ def draw_buttons():
     pygame.draw.rect(screen, (200, 200, 200), (850, 200, 100, 50))
     screen.blit(quit_button, (865, 210))
 
+
+def draw_turn():
+    font = pygame.font.Font(None, 36)
+    turn_txt = "Turn: White" if board.turn else "Turn: Black"
+    turn_render = font.render(turn_txt, True, WHITE)
+
+    text_width = turn_render.get_width()
+    text_x = (WINDOW_WIDTH - text_width) // 2 # Center le text
+    text_y = 20
+    screen.blit(turn_render, (text_x, text_y))
+
+
 def convert_click_to_square(x, y):
     col = (x - BOARD_X) // CELL_SIZE
     row = 7 - (y - BOARD_Y) // CELL_SIZE  # Inverser l'axe des y
@@ -101,6 +113,28 @@ def animate_victory(winner):
         pygame.display.flip()
         pygame.time.delay(30)
         alpha += 5
+
+
+def highlight_square_on_check():
+    if board.is_check():
+        king_square = board.king(board.turn)
+
+        row, col = divmod(king_square, 8)
+        x = BOARD_X + col * CELL_SIZE
+        y = BOARD_Y + (7 - row) * CELL_SIZE
+
+        border_check = True # change background color to red else add a red border to cell
+        if border_check:
+            # Change background to red
+            highlight_color = (255, 0, 0, 128)
+            highlight_surface = pygame.Surface((CELL_SIZE, CELL_SIZE), pygame.SRCALPHA)
+            highlight_surface.fill(highlight_color)
+            screen.blit(highlight_surface, (x, y))
+        else:
+            # Add red border color
+            highlight_color = (255, 0, 0)  # Bright red
+            rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
+            pygame.draw.rect(screen, highlight_color, rect, 4)  # 4-pixel border
 
 def main():
     selected_square = None
@@ -132,9 +166,12 @@ def main():
                         if piece and piece.color == (board.turn == chess.WHITE):
                             selected_square = square
 
+
         screen.fill((50, 50, 50))
         draw_board()
+        highlight_square_on_check()
         draw_pieces()
+        draw_turn()
         if selected_square:
             highlight_moves(selected_square)
         draw_buttons()
