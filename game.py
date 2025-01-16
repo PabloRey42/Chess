@@ -157,7 +157,7 @@ def main():
                     selected_square = None
                 elif 850 <= x <= 950 and 200 <= y <= 250:  
                     running = False
-                elif 50 <= x <= 50+100 and 300 <= y <= 300+50:
+                elif 50 <= x <= 150 and 300 <= y <= 350:
                     if len(board.move_stack) > 0:
                         board.pop()
                 elif BOARD_X <= x <= BOARD_X + BOARD_SIZE and BOARD_Y <= y <= BOARD_Y + BOARD_SIZE:
