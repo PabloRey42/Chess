@@ -1,5 +1,5 @@
 # This file may be used to create an environment using:
-# $ conda create --name <env> --file <this file>
+# $ conda create -c conda-forge --file requirements.txt --name <env>
 # platform: linux-64
 # created-by: conda 24.11.3
 _libgcc_mutex=0.1=conda_forge
