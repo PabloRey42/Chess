@@ -7,7 +7,7 @@ pygame.mixer.init()
 pygame.mixer.music.load('./sounds/sound.mp3')
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 1000, 800
-BOARD_SIZE = 600  
+BOARD_SIZE = 600
 CELL_SIZE = BOARD_SIZE // 8
 
 WHITE = (255, 255, 255)
@@ -26,7 +26,8 @@ pieces = {}
 for piece in ["pawn", "rook", "knight", "bishop", "queen", "king"]:
     for color in ["white", "black"]:
         image = pygame.image.load(f"images/{color}_{piece}.png")
-        pieces[f"{color}_{piece}"] = pygame.transform.scale(image, (CELL_SIZE, CELL_SIZE*2))
+        pieces[f"{color}_{piece}"] = pygame.transform.scale(image, (CELL_SIZE, CELL_SIZE * 2))
+
 
 def draw_board():
     for row in range(8):
@@ -37,6 +38,7 @@ def draw_board():
                 color,
                 (BOARD_X + col * CELL_SIZE, BOARD_Y + row * CELL_SIZE, CELL_SIZE, CELL_SIZE),
             )
+
 
 def draw_pieces():
     piece_types = {
@@ -60,6 +62,7 @@ def draw_pieces():
             y = BOARD_Y + (7 - row) * CELL_SIZE - CELL_SIZE
             screen.blit(image, (x, y))
 
+
 def highlight_moves(square):
     moves = list(board.legal_moves)
     for move in moves:
@@ -71,16 +74,21 @@ def highlight_moves(square):
             y = BOARD_Y + (7 - row) * CELL_SIZE + CELL_SIZE // 2
             pygame.draw.circle(screen, HIGHLIGHT_COLOR, (x, y), 10)
 
+
 def draw_buttons():
     font = pygame.font.Font(None, 36)
     reset_button = font.render("Reset", True, (0, 0, 0))
     quit_button = font.render("Quit", True, (0, 0, 0))
+    undo_button = font.render("Undo", True, (0, 0, 0))
 
     pygame.draw.rect(screen, (200, 200, 200), (50, 200, 100, 50))
     screen.blit(reset_button, (65, 210))
 
     pygame.draw.rect(screen, (200, 200, 200), (850, 200, 100, 50))
     screen.blit(quit_button, (865, 210))
+
+    pygame.draw.rect(screen, (200, 200, 200), (50, 300, 100, 50))
+    screen.blit(undo_button, (65, 310))
 
 
 def draw_turn():
@@ -89,7 +97,7 @@ def draw_turn():
     turn_render = font.render(turn_txt, True, WHITE)
 
     text_width = turn_render.get_width()
-    text_x = (WINDOW_WIDTH - text_width) // 2 # Center le text
+    text_x = (WINDOW_WIDTH - text_width) // 2  # Center le text
     text_y = 20
     screen.blit(turn_render, (text_x, text_y))
 
@@ -98,6 +106,7 @@ def convert_click_to_square(x, y):
     col = (x - BOARD_X) // CELL_SIZE
     row = 7 - (y - BOARD_Y) // CELL_SIZE  # Inverser l'axe des y
     return chess.square(col, row)
+
 
 def animate_victory(winner):
     font = pygame.font.Font(None, 72)
@@ -125,7 +134,7 @@ def highlight_square_on_check():
         x = BOARD_X + col * CELL_SIZE
         y = BOARD_Y + (7 - row) * CELL_SIZE
 
-        border_check = True # change background color to red else add a red border to cell
+        border_check = True  # change background color to red else add a red border to cell
         if border_check:
             # Change background to red
             highlight_color = (255, 0, 0, 128)
@@ -137,6 +146,12 @@ def highlight_square_on_check():
             highlight_color = (255, 0, 0)  # Bright red
             rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
             pygame.draw.rect(screen, highlight_color, rect, 4)  # 4-pixel border
+
+def is_promoting(moving_piece, square):
+    return (moving_piece.piece_type is chess.PAWN and
+            ((moving_piece.color == chess.WHITE and chess.square_rank(square) == 7)
+             or (moving_piece.color == chess.BLACK and chess.square_rank(square) == 0)))
+
 
 def main():
     selected_square = None
@@ -151,31 +166,36 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
 
-                if 50 <= x <= 150 and 200 <= y <= 250:  
+                if 50 <= x <= 150 and 200 <= y <= 250:
                     board.reset()
                     selected_square = None
-                elif 850 <= x <= 950 and 200 <= y <= 250:  
+                elif 850 <= x <= 950 and 200 <= y <= 250:
                     running = False
+                elif 50 <= x <= 150 and 300 <= y <= 350:
+                    if len(board.move_stack) > 0:
+                        board.pop()
+                        selected_square = None
                 elif BOARD_X <= x <= BOARD_X + BOARD_SIZE and BOARD_Y <= y <= BOARD_Y + BOARD_SIZE:
                     square = convert_click_to_square(x, y)
-                    if selected_square:
-                        move = chess.Move(selected_square, square)
+                    if selected_square is not None:
+                        moving_piece = board.piece_at(selected_square)
+                        choosen_promotion = chess.QUEEN if is_promoting(moving_piece, square) else None
+                        move = chess.Move(selected_square, square, promotion=choosen_promotion)
                         if move in board.legal_moves:
                             board.push(move)
                             pygame.mixer.music.play()
                         selected_square = None
                     else:
                         piece = board.piece_at(square)
-                        if piece and piece.color == (board.turn == chess.WHITE):
+                        if piece and piece.color == board.turn:
                             selected_square = square
-
 
         screen.fill((50, 50, 50))
         draw_board()
         highlight_square_on_check()
         draw_pieces()
         draw_turn()
-        if selected_square:
+        if selected_square is not None:
             highlight_moves(selected_square)
         draw_buttons()
 
@@ -186,7 +206,6 @@ def main():
             selected_square = None
 
         pygame.display.flip()
-
     pygame.quit()
     sys.exit()
 
