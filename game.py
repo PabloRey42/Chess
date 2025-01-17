@@ -177,7 +177,7 @@ def main():
                         selected_square = None
                 elif BOARD_X <= x <= BOARD_X + BOARD_SIZE and BOARD_Y <= y <= BOARD_Y + BOARD_SIZE:
                     square = convert_click_to_square(x, y)
-                    if selected_square:
+                    if selected_square is not None:
                         moving_piece = board.piece_at(selected_square)
                         choosen_promotion = chess.QUEEN if is_promoting(moving_piece, square) else None
                         move = chess.Move(selected_square, square, promotion=choosen_promotion)
@@ -187,7 +187,7 @@ def main():
                         selected_square = None
                     else:
                         piece = board.piece_at(square)
-                        if piece and piece.color == (board.turn == chess.WHITE):
+                        if piece and piece.color == board.turn:
                             selected_square = square
 
         screen.fill((50, 50, 50))
@@ -195,7 +195,7 @@ def main():
         highlight_square_on_check()
         draw_pieces()
         draw_turn()
-        if selected_square:
+        if selected_square is not None:
             highlight_moves(selected_square)
         draw_buttons()
 
