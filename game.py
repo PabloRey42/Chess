@@ -39,7 +39,6 @@ def draw_board():
                 (BOARD_X + col * CELL_SIZE, BOARD_Y + row * CELL_SIZE, CELL_SIZE, CELL_SIZE),
             )
 
-
 def draw_pieces():
     piece_types = {
         chess.PAWN: "pawn",
@@ -50,18 +49,17 @@ def draw_pieces():
         chess.KING: "king"
     }
     for square in reversed(chess.SQUARES):
-        piece = board.piece_at(square)
-        if piece:
-            piece_name = piece_types[piece.piece_type]
-            color = "white" if piece.color == chess.WHITE else "black"
-            image = pieces[f"{color}_{piece_name}"]
+        promoting_piece = board.piece_at(square)
+        if promoting_piece:
+            piece_name = piece_types[promoting_piece.piece_type]
+            piece_color = "white" if promoting_piece.color == chess.WHITE else "black"
+            piece_image = pieces[f"{piece_color}_{piece_name}"]
 
             row, col = divmod(square, 8)
 
             x = BOARD_X + col * CELL_SIZE
             y = BOARD_Y + (7 - row) * CELL_SIZE - CELL_SIZE
-            screen.blit(image, (x, y))
-
+            screen.blit(piece_image, (x, y))
 
 def highlight_moves(square):
     moves = list(board.legal_moves)
@@ -73,7 +71,6 @@ def highlight_moves(square):
             x = BOARD_X + col * CELL_SIZE + CELL_SIZE // 2
             y = BOARD_Y + (7 - row) * CELL_SIZE + CELL_SIZE // 2
             pygame.draw.circle(screen, HIGHLIGHT_COLOR, (x, y), 10)
-
 
 def draw_buttons():
     font = pygame.font.Font(None, 36)
@@ -90,7 +87,6 @@ def draw_buttons():
     pygame.draw.rect(screen, (200, 200, 200), (50, 300, 100, 50))
     screen.blit(undo_button, (65, 310))
 
-
 def draw_turn():
     font = pygame.font.Font(None, 36)
     turn_txt = "Turn: White" if board.turn else "Turn: Black"
@@ -101,12 +97,10 @@ def draw_turn():
     text_y = 20
     screen.blit(turn_render, (text_x, text_y))
 
-
 def convert_click_to_square(x, y):
     col = (x - BOARD_X) // CELL_SIZE
     row = 7 - (y - BOARD_Y) // CELL_SIZE  # Inverser l'axe des y
     return chess.square(col, row)
-
 
 def animate_victory(winner):
     font = pygame.font.Font(None, 72)
@@ -124,7 +118,6 @@ def animate_victory(winner):
         pygame.display.flip()
         pygame.time.delay(30)
         alpha += 5
-
 
 def highlight_square_on_check():
     if board.is_check():
@@ -147,11 +140,56 @@ def highlight_square_on_check():
             rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
             pygame.draw.rect(screen, highlight_color, rect, 4)  # 4-pixel border
 
+def show_promotion_menu(x, y, color):
+    """
+    Displays a horizontal promotion menu with sprites for the player to choose from, asynchronously.
+    Args:
+        x, y: The position to display the menu.
+        color: The color of the pawn being promoted.
+    Returns:
+        The selected promotion piece (chess.QUEEN, chess.ROOK, etc.)
+    """
+    options = [chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT]
+    sprites = [pieces[f"{color}_queen"], pieces[f"{color}_rook"],
+               pieces[f"{color}_bishop"], pieces[f"{color}_knight"]]
+
+    menu_width = CELL_SIZE * 4
+    menu_height = CELL_SIZE
+    menu_x = x - (menu_width - CELL_SIZE) // 2
+    menu_y = y - CELL_SIZE
+
+    selected_piece = None
+
+    pygame.draw.rect(screen, (200, 200, 200), (menu_x, menu_y, menu_width, menu_height))  # Background
+    pygame.draw.rect(screen, BLACK, (menu_x, menu_y, menu_width, menu_height), 3)  # Border
+    for i, sprite in enumerate(sprites):
+        sprite_x = menu_x + i * CELL_SIZE
+        sprite_y = menu_y - CELL_SIZE
+        screen.blit(sprite, (sprite_x, sprite_y))
+    pygame.display.flip()
+
+    while selected_piece is None:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                click_x, click_y = pygame.mouse.get_pos()
+                # print(f"click_x: {click_x}: click_y {click_y}")
+                if not (menu_x <= click_x <= menu_x + menu_width and menu_y <= click_y <= menu_y + menu_height):
+                    return None
+                for i in range(4):
+                    sprite_x = menu_x + i * CELL_SIZE
+                    sprite_y = menu_y
+                    option_rect = pygame.Rect(sprite_x, sprite_y, CELL_SIZE, CELL_SIZE)
+                    if option_rect.collidepoint(click_x, click_y):
+                        selected_piece = options[i]
+    return selected_piece
+
 def is_promoting(moving_piece, square):
     return (moving_piece.piece_type is chess.PAWN and
             ((moving_piece.color == chess.WHITE and chess.square_rank(square) == 7)
              or (moving_piece.color == chess.BLACK and chess.square_rank(square) == 0)))
-
 
 def main():
     selected_square = None
@@ -179,8 +217,12 @@ def main():
                     square = convert_click_to_square(x, y)
                     if selected_square is not None:
                         moving_piece = board.piece_at(selected_square)
-                        choosen_promotion = chess.QUEEN if is_promoting(moving_piece, square) else None
-                        move = chess.Move(selected_square, square, promotion=choosen_promotion)
+                        chosen_promotion = None
+                        if is_promoting(moving_piece, square):
+                            pawn_x = BOARD_X + (square % 8) * CELL_SIZE
+                            pawn_y = BOARD_Y + (7 - (square // 8)) * CELL_SIZE
+                            chosen_promotion = show_promotion_menu(pawn_x, pawn_y, "white" if moving_piece.color else "black")
+                        move = chess.Move(selected_square, square, promotion=chosen_promotion)
                         if move in board.legal_moves:
                             board.push(move)
                             pygame.mixer.music.play()
@@ -195,6 +237,7 @@ def main():
         highlight_square_on_check()
         draw_pieces()
         draw_turn()
+        # show_promotion_menu(150, 0, "black", True)
         if selected_square is not None:
             highlight_moves(selected_square)
         draw_buttons()
