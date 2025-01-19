@@ -41,12 +41,11 @@ Pour installer les dépendances, exécutez :
 pip install pygame python-chess
 ```
 
-Ou avec conda, vous pouvez créer un nouvel environnement avec les bonnes dépendances en faisant :
+Ou utilisez `conda` pour créer un environnement avec les dépendances :
 
 ```bash
 conda create -c conda-forge --file conda_requirements.txt --name <env>
 ```
-
 
 ## Structure du projet
 
