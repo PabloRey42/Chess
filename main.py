@@ -3,6 +3,7 @@ import pygame
 import chess 
 import sys
 from game.Ia import evaluate_board, get_best_move
+from game.save import save_game_pgn, load_game_pgn
 
 pygame.init()
 pygame.mixer.init()
@@ -61,6 +62,8 @@ def draw_buttons():
     reset_button = font.render("Reset", True, (0, 0, 0))
     quit_button = font.render("Quit", True, (0, 0, 0))
     undo_button = font.render("Undo", True, (0, 0, 0))
+    save_button = font.render("Save", True, (0, 0, 0))
+    load_button = font.render("Load", True, (0, 0, 0))
 
     pygame.draw.rect(screen, (200, 200, 200), (50, 200, 100, 50))
     screen.blit(reset_button, (65, 210))
@@ -70,6 +73,13 @@ def draw_buttons():
 
     pygame.draw.rect(screen, (200, 200, 200), (50, 300, 100, 50))
     screen.blit(undo_button, (65, 310))
+
+    pygame.draw.rect(screen, (200, 200, 200), (50, 400, 100, 50))
+    screen.blit(save_button, (65, 410))
+
+    pygame.draw.rect(screen, (200, 200, 200), (50, 500, 100, 50))
+    screen.blit(load_button, (65, 510))
+
 
 def draw_turn():
     font = pygame.font.Font(None, 36)
@@ -170,14 +180,31 @@ def show_promotion_menu(x, y, color):
                         selected_piece = options[i]
     return selected_piece
 
-def is_promoting(moving_piece, square):
-    return (moving_piece.piece_type is chess.PAWN and
-            ((moving_piece.color == chess.WHITE and chess.square_rank(square) == 7)
-             or (moving_piece.color == chess.BLACK and chess.square_rank(square) == 0)))
+def is_promoting(moving_piece, selected_square, square):
+    """
+    Checks if the given move is a promotion and is legal.
+
+    Args:
+        moving_piece: The chess piece being moved.
+        square: The target square of the move.
+
+    Returns:
+        bool: True if the move is a valid promotion, False otherwise.
+    """
+    if moving_piece.piece_type == chess.PAWN:
+        if ((moving_piece.color == chess.WHITE and chess.square_rank(square) == 7) or
+            (moving_piece.color == chess.BLACK and chess.square_rank(square) == 0)):
+            # Create a potential promotion move and check if it's legal
+            from_square = selected_square  # get king position
+            promotion_move = chess.Move(selected_square, square, promotion=chess.QUEEN)
+            return promotion_move in board.legal_moves
+    return False
+
 
 def main():
     selected_square = None
     running = True
+    global board
 
     print(board)
     while running:
@@ -194,16 +221,23 @@ def main():
                 elif 850 <= x <= 950 and 200 <= y <= 250:
                     running = False
                 elif 50 <= x <= 150 and 300 <= y <= 350:
-                    if len(board.move_stack) > 0:
+                    if len(board.move_stack) > 1:
+                        board.pop()
                         board.pop()
                         selected_square = None
+                elif 50 <= x <= 150 and 400 <= y <= 450:
+                    save_game_pgn(board)
+                elif 50 <= x <= 150 and 500 <= y <= 550:
+                    pgn = load_game_pgn()
+                    if pgn is not None:
+                        board = pgn
                 elif BOARD_X <= x <= BOARD_X + BOARD_SIZE and BOARD_Y <= y <= BOARD_Y + BOARD_SIZE:
                     if board.turn:  # Le joueur humain joue les blancs
                         square = convert_click_to_square(x, y)
                         if selected_square is not None:
                             moving_piece = board.piece_at(selected_square)
                             chosen_promotion = None
-                            if is_promoting(moving_piece, square):
+                            if is_promoting(moving_piece, selected_square, square):
                                 pawn_x = BOARD_X + (square % 8) * CELL_SIZE
                                 pawn_y = BOARD_Y + (7 - (square // 8)) * CELL_SIZE
                                 chosen_promotion = show_promotion_menu(pawn_x, pawn_y, "white" if moving_piece.color else "black")

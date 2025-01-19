@@ -33,6 +33,7 @@ Avant de lancer le projet, assurez-vous d'avoir les éléments suivants install�
 - Python 3.7 ou version supérieure
 - Pygame
 - python-chess
+- conda (optionnel)
 
 Pour installer les dépendances, exécutez :
 
