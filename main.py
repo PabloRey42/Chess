@@ -3,6 +3,7 @@ import pygame
 import chess 
 import sys
 from game.Ia import evaluate_board, get_best_move
+from game.save import save_game_pgn, load_game_pgn
 
 pygame.init()
 pygame.mixer.init()
@@ -61,6 +62,8 @@ def draw_buttons():
     reset_button = font.render("Reset", True, (0, 0, 0))
     quit_button = font.render("Quit", True, (0, 0, 0))
     undo_button = font.render("Undo", True, (0, 0, 0))
+    save_button = font.render("Save", True, (0, 0, 0))
+    load_button = font.render("Load", True, (0, 0, 0))
 
     pygame.draw.rect(screen, (200, 200, 200), (50, 200, 100, 50))
     screen.blit(reset_button, (65, 210))
@@ -70,6 +73,13 @@ def draw_buttons():
 
     pygame.draw.rect(screen, (200, 200, 200), (50, 300, 100, 50))
     screen.blit(undo_button, (65, 310))
+
+    pygame.draw.rect(screen, (200, 200, 200), (50, 400, 100, 50))
+    screen.blit(save_button, (65, 410))
+
+    pygame.draw.rect(screen, (200, 200, 200), (50, 500, 100, 50))
+    screen.blit(load_button, (65, 510))
+
 
 def draw_turn():
     font = pygame.font.Font(None, 36)
@@ -178,6 +188,7 @@ def is_promoting(moving_piece, square):
 def main():
     selected_square = None
     running = True
+    global board
 
     print(board)
     while running:
@@ -194,9 +205,14 @@ def main():
                 elif 850 <= x <= 950 and 200 <= y <= 250:
                     running = False
                 elif 50 <= x <= 150 and 300 <= y <= 350:
-                    if len(board.move_stack) > 0:
+                    if len(board.move_stack) > 1:
+                        board.pop()
                         board.pop()
                         selected_square = None
+                elif 50 <= x <= 150 and 400 <= y <= 450:
+                    save_game_pgn(board)
+                elif 50 <= x <= 150 and 500 <= y <= 550:
+                    board = load_game_pgn()
                 elif BOARD_X <= x <= BOARD_X + BOARD_SIZE and BOARD_Y <= y <= BOARD_Y + BOARD_SIZE:
                     if board.turn:  # Le joueur humain joue les blancs
                         square = convert_click_to_square(x, y)
