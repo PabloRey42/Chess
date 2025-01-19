@@ -180,10 +180,26 @@ def show_promotion_menu(x, y, color):
                         selected_piece = options[i]
     return selected_piece
 
-def is_promoting(moving_piece, square):
-    return (moving_piece.piece_type is chess.PAWN and
-            ((moving_piece.color == chess.WHITE and chess.square_rank(square) == 7)
-             or (moving_piece.color == chess.BLACK and chess.square_rank(square) == 0)))
+def is_promoting(moving_piece, selected_square, square):
+    """
+    Checks if the given move is a promotion and is legal.
+
+    Args:
+        moving_piece: The chess piece being moved.
+        square: The target square of the move.
+
+    Returns:
+        bool: True if the move is a valid promotion, False otherwise.
+    """
+    if moving_piece.piece_type == chess.PAWN:
+        if ((moving_piece.color == chess.WHITE and chess.square_rank(square) == 7) or
+            (moving_piece.color == chess.BLACK and chess.square_rank(square) == 0)):
+            # Create a potential promotion move and check if it's legal
+            from_square = selected_square  # get king position
+            promotion_move = chess.Move(selected_square, square, promotion=chess.QUEEN)
+            return promotion_move in board.legal_moves
+    return False
+
 
 def main():
     selected_square = None
@@ -221,7 +237,7 @@ def main():
                         if selected_square is not None:
                             moving_piece = board.piece_at(selected_square)
                             chosen_promotion = None
-                            if is_promoting(moving_piece, square):
+                            if is_promoting(moving_piece, selected_square, square):
                                 pawn_x = BOARD_X + (square % 8) * CELL_SIZE
                                 pawn_y = BOARD_Y + (7 - (square // 8)) * CELL_SIZE
                                 chosen_promotion = show_promotion_menu(pawn_x, pawn_y, "white" if moving_piece.color else "black")
