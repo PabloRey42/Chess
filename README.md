@@ -69,12 +69,6 @@ python main.py
 
 ![alt text](image.png)
 
-## Améliorations futures
-
-- Ajout d'un mode multijoueur local.
-- Implémentation de différents niveaux de difficulté pour l'IA.
-- Sauvegarde et chargement des parties.
-
 ## Contribution
 
 Les contributions sont les bienvenues ! N'hésitez pas à proposer des modifications via des pull requests ou à signaler des problèmes dans la section Issues.
