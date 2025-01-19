@@ -212,7 +212,9 @@ def main():
                 elif 50 <= x <= 150 and 400 <= y <= 450:
                     save_game_pgn(board)
                 elif 50 <= x <= 150 and 500 <= y <= 550:
-                    board = load_game_pgn()
+                    pgn = load_game_pgn()
+                    if pgn is not None:
+                        board = pgn
                 elif BOARD_X <= x <= BOARD_X + BOARD_SIZE and BOARD_Y <= y <= BOARD_Y + BOARD_SIZE:
                     if board.turn:  # Le joueur humain joue les blancs
                         square = convert_click_to_square(x, y)
