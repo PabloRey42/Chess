@@ -2,6 +2,7 @@ from game.constants import *
 import pygame
 import chess 
 import sys
+from game.Ia import evaluate_board, get_best_move
 
 pygame.init()
 pygame.mixer.init()
@@ -197,30 +198,37 @@ def main():
                         board.pop()
                         selected_square = None
                 elif BOARD_X <= x <= BOARD_X + BOARD_SIZE and BOARD_Y <= y <= BOARD_Y + BOARD_SIZE:
-                    square = convert_click_to_square(x, y)
-                    if selected_square is not None:
-                        moving_piece = board.piece_at(selected_square)
-                        chosen_promotion = None
-                        if is_promoting(moving_piece, square):
-                            pawn_x = BOARD_X + (square % 8) * CELL_SIZE
-                            pawn_y = BOARD_Y + (7 - (square // 8)) * CELL_SIZE
-                            chosen_promotion = show_promotion_menu(pawn_x, pawn_y, "white" if moving_piece.color else "black")
-                        move = chess.Move(selected_square, square, promotion=chosen_promotion)
-                        if move in board.legal_moves:
-                            board.push(move)
-                            pygame.mixer.music.play()
-                        selected_square = None
-                    else:
-                        piece = board.piece_at(square)
-                        if piece and piece.color == board.turn:
-                            selected_square = square
+                    if board.turn:  # Le joueur humain joue les blancs
+                        square = convert_click_to_square(x, y)
+                        if selected_square is not None:
+                            moving_piece = board.piece_at(selected_square)
+                            chosen_promotion = None
+                            if is_promoting(moving_piece, square):
+                                pawn_x = BOARD_X + (square % 8) * CELL_SIZE
+                                pawn_y = BOARD_Y + (7 - (square // 8)) * CELL_SIZE
+                                chosen_promotion = show_promotion_menu(pawn_x, pawn_y, "white" if moving_piece.color else "black")
+                            move = chess.Move(selected_square, square, promotion=chosen_promotion)
+                            if move in board.legal_moves:
+                                board.push(move)
+                                pygame.mixer.music.play()
+                            selected_square = None
+                        else:
+                            piece = board.piece_at(square)
+                            if piece and piece.color == board.turn:
+                                selected_square = square
+
+        if not board.turn:  # C'est au tour des noirs (IA)
+            ai_move = get_best_move(board, depth=2)  # Profondeur ajustable
+            if ai_move:
+                board.push(ai_move)
+                pygame.mixer.music.play()
+            selected_square = None
 
         screen.fill((50, 50, 50))
         draw_board()
         highlight_square_on_check()
         draw_pieces()
         draw_turn()
-        # show_promotion_menu(150, 0, "black", True)
         if selected_square is not None:
             highlight_moves(selected_square)
         draw_buttons()
@@ -234,6 +242,7 @@ def main():
         pygame.display.flip()
     pygame.quit()
     sys.exit()
+
 
 if __name__ == "__main__":
     main()
