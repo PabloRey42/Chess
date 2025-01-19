@@ -73,10 +73,6 @@ python main.py
 
 Les contributions sont les bienvenues ! N'hésitez pas à proposer des modifications via des pull requests ou à signaler des problèmes dans la section Issues.
 
-## Licence
-
-Ce projet est sous licence MIT. Consultez le fichier `LICENSE` pour plus de détails.
-
 ---
 
 Merci de jouer à notre jeu d'échecs ! Nous espérons que vous apprécierez l'expérience.
